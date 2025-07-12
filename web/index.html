@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能网站爬虫 - Crawl4AI Web版</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .config-panel, .results-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .result-item {
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-url {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #e1e5e9;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logs-container {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-success { color: #00ff00; }
+        .log-error { color: #ff4444; }
+        .log-warning { color: #ffaa00; }
+        .log-info { color: #00aaff; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-close:hover {
+            color: #000;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .collapsible:hover {
+            background: #e1e5e9;
+        }
+
+        .collapsible.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 15px 0;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1><i class="fas fa-spider"></i> 智能网站爬虫</h1>
+            <p>基于 Crawl4AI 的强大网站内容抓取工具</p>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 配置面板 -->
+            <div class="config-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-cog"></i>
+                    爬虫配置
+                </h2>
+
+                <form id="crawlerForm">
+                    <!-- 基础配置 -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-globe"></i> 基础配置</h3>
+                        
+                        <div class="form-group">
+                            <label for="targetUrl">目标网站URL *</label>
+                            <input type="url" id="targetUrl" name="targetUrl" 
+                                   placeholder="https://docs.cursor.com/welcome" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="outputDir">输出目录</label>
+                            <input type="text" id="outputDir" name="outputDir" 
+                                   value="crawl_results" placeholder="crawl_results">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="maxDepth">最大爬取深度 
+                                <span class="tooltip">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span class="tooltiptext">控制爬虫递归抓取的层级深度，建议1-5层</span>
+                                </span>
+                            </label>
+                            <input type="number" id="maxDepth" name="maxDepth" 
+                                   value="3" min="1" max="10">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="maxPages">最大页面数量</label>
+                            <input type="number" id="maxPages" name="maxPages" 
+                                   value="50" min="1" max="1000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="batchSize">批处理大小</label>
+                            <input type="number" id="batchSize" name="batchSize" 
+                                   value="5" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <!-- 爬取策略 -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-route"></i> 爬取策略</h3>
+                        
+                        <div class="form-group">
+                            <label for="crawlStrategy">深度爬取策略</label>
+                            <select id="crawlStrategy" name="crawlStrategy">
+                                <option value="bfs">广度优先 (BFS)</option>
+                                <option value="dfs">深度优先 (DFS)</option>
+                                <option value="none">仅抓取首页链接</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cacheMode">缓存模式</label>
+                            <select id="cacheMode" name="cacheMode">
+                                <option value="BYPASS">绕过缓存</option>
+                                <option value="ENABLED">启用缓存</option>
+                                <option value="READ_ONLY">只读缓存</option>
+                                <option value="WRITE_ONLY">只写缓存</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="wordThreshold">最小词数阈值</label>
+                            <input type="number" id="wordThreshold" name="wordThreshold" 
+                                   value="20" min="0" max="1000">
+                        </div>
+                    </div>
+
+                    <!-- 输出格式 -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-file-export"></i> 输出格式</h3>
+                        
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="outputMarkdown" name="outputFormats" value="markdown" checked>
+                                <label for="outputMarkdown">Markdown</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="outputJson" name="outputFormats" value="json" checked>
+                                <label for="outputJson">JSON</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="outputHtml" name="outputFormats" value="html" checked>
+                                <label for="outputHtml">HTML索引</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="outputScreenshot" name="outputFormats" value="screenshot">
+                                <label for="outputScreenshot">截图</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="outputPdf" name="outputFormats" value="pdf">
+                                <label for="outputPdf">PDF</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 内容过滤 -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-filter"></i> 内容过滤</h3>
+                        
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="excludeExternal" name="filters" value="excludeExternal" checked>
+                                <label for="excludeExternal">排除外部链接</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="excludeSocial" name="filters" value="excludeSocial" checked>
+                                <label for="excludeSocial">排除社交媒体</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="excludeImages" name="filters" value="excludeImages">
+                                <label for="excludeImages">排除外部图片</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="processIframes" name="filters" value="processIframes">
+                                <label for="processIframes">处理iframe内容</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="excludeDomains">排除域名 (逗号分隔)</label>
+                            <textarea id="excludeDomains" name="excludeDomains" rows="2" 
+                                      placeholder="facebook.com, twitter.com, ads.example.com"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="excludePatterns">排除URL模式 (逗号分隔)</label>
+                            <textarea id="excludePatterns" name="excludePatterns" rows="2" 
+                                      placeholder="*.pdf, *.jpg, *.png, */admin/*"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 高级选项 -->
+                    <div class="collapsible">
+                        <i class="fas fa-chevron-down"></i> 高级选项
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="form-section">
+                            <h3><i class="fas fa-cogs"></i> 浏览器配置</h3>
+                            
+                            <div class="form-group">
+                                <label for="browserType">浏览器类型</label>
+                                <select id="browserType" name="browserType">
+                                    <option value="chromium">Chromium</option>
+                                    <option value="firefox">Firefox</option>
+                                    <option value="webkit">WebKit</option>
+                                </select>
+                            </div>
+
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="headless" name="browserOptions" value="headless" checked>
+                                    <label for="headless">无头模式</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="verbose" name="browserOptions" value="verbose">
+                                    <label for="verbose">详细日志</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="userAgent">User Agent</label>
+                                <input type="text" id="userAgent" name="userAgent" 
+                                       placeholder="留空使用默认">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="proxy">代理服务器</label>
+                                <input type="text" id="proxy" name="proxy" 
+                                       placeholder="http://proxy:port">
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-extract"></i> 提取策略</h3>
+                            
+                            <div class="form-group">
+                                <label for="extractionType">提取类型</label>
+                                <select id="extractionType" name="extractionType">
+                                    <option value="css">CSS选择器</option>
+                                    <option value="xpath">XPath</option>
+                                    <option value="llm">LLM智能提取</option>
+                                    <option value="regex">正则表达式</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="cssSelectorsGroup">
+                                <label for="cssSelectors">CSS选择器配置 (JSON格式)</label>
+                                <textarea id="cssSelectors" name="cssSelectors" rows="6" 
+                                          placeholder='{"name": "PageContent", "baseSelector": "body", "fields": [{"name": "title", "selector": "h1, title", "type": "text"}]}'></textarea>
+                            </div>
+
+                            <div class="form-group" id="llmConfigGroup" style="display: none;">
+                                <label for="llmProvider">LLM提供商</label>
+                                <select id="llmProvider" name="llmProvider">
+                                    <option value="openai/gpt-4o-mini">OpenAI GPT-4o Mini</option>
+                                    <option value="openai/gpt-4o">OpenAI GPT-4o</option>
+                                    <option value="anthropic/claude-3-sonnet">Anthropic Claude 3 Sonnet</option>
+                                    <option value="ollama/llama2">Ollama Llama2</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="llmApiKeyGroup" style="display: none;">
+                                <label for="llmApiKey">API密钥</label>
+                                <input type="password" id="llmApiKey" name="llmApiKey" 
+                                       placeholder="输入您的API密钥">
+                            </div>
+
+                            <div class="form-group" id="llmInstructionGroup" style="display: none;">
+                                <label for="llmInstruction">提取指令</label>
+                                <textarea id="llmInstruction" name="llmInstruction" rows="3" 
+                                          placeholder="请提取页面中的主要内容，包括标题、摘要和关键信息"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3><i class="fas fa-clock"></i> 等待条件</h3>
+                            
+                            <div class="form-group">
+                                <label for="waitFor">等待条件</label>
+                                <input type="text" id="waitFor" name="waitFor" 
+                                       placeholder="css:.content-loaded 或 js:window.loaded">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="delay">延迟时间 (秒)</label>
+                                <input type="number" id="delay" name="delay" 
+                                       value="1" min="0" max="60" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 启动按钮 -->
+                    <button type="submit" class="start-btn" id="startBtn">
+                        <i class="fas fa-play"></i>
+                        开始抓取
+                    </button>
+
+                    <!-- 进度条 -->
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">准备开始...</div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 结果面板 -->
+            <div class="results-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-chart-bar"></i>
+                    抓取结果
+                </h2>
+
+                <!-- 统计信息 -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="discoveredCount">0</div>
+                        <div class="stat-label">发现页面</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="crawledCount">0</div>
+                        <div class="stat-label">成功抓取</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="failedCount">0</div>
+                        <div class="stat-label">失败页面</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="duration">0s</div>
+                        <div class="stat-label">耗时</div>
+                    </div>
+                </div>
+
+                <!-- 结果选项卡 -->
+                <div class="tabs">
+                    <div class="tab active" data-tab="results">
+                        <i class="fas fa-list"></i> 页面列表
+                    </div>
+                    <div class="tab" data-tab="logs">
+                        <i class="fas fa-terminal"></i> 实时日志
+                    </div>
+                    <div class="tab" data-tab="navigation">
+                        <i class="fas fa-sitemap"></i> 导航结构
+                    </div>
+                </div>
+
+                <!-- 结果内容 -->
+                <div class="tab-content active" id="results">
+                    <div class="results-grid" id="resultsGrid">
+                        <div style="text-align: center; color: #999; padding: 40px;">
+                            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                            <p>还没有抓取结果，请配置参数后开始抓取</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="logs">
+                    <div class="logs-container" id="logsContainer">
+                        <div class="log-entry log-info">等待开始抓取任务...</div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="navigation">
+                    <div id="navigationTree" style="padding: 20px; text-align: center; color: #999;">
+                        <i class="fas fa-sitemap" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p>导航结构将在抓取完成后显示</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情模态框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <div id="modalContent">
+                <!-- 动态内容 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
