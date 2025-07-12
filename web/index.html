@@ -599,6 +599,74 @@
                                 <label for="processIframes">处理iframe内容</label>
                             </div>
                         </div>
+                        
+                        <!-- 内容元素过滤 -->
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>
+                                <i class="fas fa-scissors"></i> 页面元素过滤
+                                <span class="tooltip">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span class="tooltiptext">选择要从抓取内容中排除的页面元素</span>
+                                </span>
+                            </label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterFooter" name="contentFilters" value="footer" checked>
+                                    <label for="filterFooter">页脚</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterHeader" name="contentFilters" value="header">
+                                    <label for="filterHeader">页头</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterNavigation" name="contentFilters" value="navigation">
+                                    <label for="filterNavigation">导航栏</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterAds" name="contentFilters" value="ads" checked>
+                                    <label for="filterAds">广告</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterSocialMedia" name="contentFilters" value="social">
+                                    <label for="filterSocialMedia">社交媒体</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterComments" name="contentFilters" value="comments">
+                                    <label for="filterComments">评论区</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterSidebar" name="contentFilters" value="sidebar">
+                                    <label for="filterSidebar">侧边栏</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="filterPopup" name="contentFilters" value="popup" checked>
+                                    <label for="filterPopup">弹窗</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 自定义过滤器 -->
+                        <div class="form-group">
+                            <label for="customSelectors">自定义CSS选择器 (逗号分隔)
+                                <span class="tooltip">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span class="tooltiptext">输入要排除的CSS选择器，如：.advertisement, #popup, .sidebar</span>
+                                </span>
+                            </label>
+                            <textarea id="customSelectors" name="customSelectors" rows="2" 
+                                      placeholder=".advertisement, #popup, .sidebar"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customKeywords">自定义关键词 (逗号分隔)
+                                <span class="tooltip">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span class="tooltiptext">包含这些关键词的内容将被过滤，如：广告, 推广, 赞助</span>
+                                </span>
+                            </label>
+                            <textarea id="customKeywords" name="customKeywords" rows="2" 
+                                      placeholder="广告, 推广, 赞助"></textarea>
+                        </div>
 
                         <div class="form-group">
                             <label for="excludeDomains">排除域名 (逗号分隔)</label>
@@ -749,6 +817,10 @@
                     <div class="stat-card">
                         <div class="stat-number" id="failedCount">0</div>
                         <div class="stat-label">失败页面</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="filteredCount">0</div>
+                        <div class="stat-label">已过滤</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number" id="duration">0s</div>

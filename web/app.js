@@ -264,6 +264,13 @@ class CrawlerApp {
             exclude_patterns: this.parseTextList(formData.get('excludePatterns'))
         };
 
+        // 内容过滤配置
+        config.content_filter = {
+            enabled_filters: formData.getAll('contentFilters'),
+            custom_selectors: this.parseTextList(formData.get('customSelectors')),
+            custom_keywords: this.parseTextList(formData.get('customKeywords'))
+        };
+
         // 浏览器配置
         config.browser = {
             type: formData.get('browserType'),
@@ -392,6 +399,7 @@ class CrawlerApp {
             document.getElementById('discoveredCount').textContent = data.stats.discovered || 0;
             document.getElementById('crawledCount').textContent = data.stats.crawled || 0;
             document.getElementById('failedCount').textContent = data.stats.failed || 0;
+            document.getElementById('filteredCount').textContent = data.stats.filtered || 0;
         }
         
         if (this.startTime) {

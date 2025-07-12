@@ -32,6 +32,18 @@ except ImportError:
     CRAWL4AI_AVAILABLE = False
     print("警告: crawl4ai 未安装，请运行 'pip install crawl4ai'")
 
+# 内容过滤器导入
+try:
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from content_filter import ContentFilter, create_default_filter
+    CONTENT_FILTER_AVAILABLE = True
+    print("✅ 内容过滤器已加载")
+except ImportError:
+    CONTENT_FILTER_AVAILABLE = False
+    print("警告: 内容过滤器不可用")
+
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
@@ -63,7 +75,8 @@ class CrawlerTask:
         self.stats = {
             'discovered': 0,
             'crawled': 0,
-            'failed': 0
+            'failed': 0,
+            'filtered': 0
         }
         self.results = []
         self.navigation = []

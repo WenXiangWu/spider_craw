@@ -44,17 +44,28 @@ except ImportError:
     ENHANCED_NAV_AVAILABLE = False
     logger.warning("⚠️  增强导航提取器不可用，将使用基础导航功能")
 
+# 尝试导入内容过滤器
+try:
+    from content_filter import ContentFilter, create_default_filter
+    CONTENT_FILTER_AVAILABLE = True
+    logger.info("✅ 内容过滤器已加载")
+except ImportError:
+    CONTENT_FILTER_AVAILABLE = False
+    logger.warning("⚠️  内容过滤器不可用，将不进行内容过滤")
+
 
 class WebsiteCrawler:
     """网站爬虫类，负责发现和抓取网站内容"""
     
-    def __init__(self, base_url: str, output_dir: str = "results"):
+    def __init__(self, base_url: str, output_dir: str = "results", 
+                 content_filter_config: Optional[Dict] = None):
         """
         初始化爬虫
         
         Args:
             base_url: 目标网站的基础URL
             output_dir: 输出目录
+            content_filter_config: 内容过滤器配置
         """
         self.base_url = base_url.rstrip('/')
         self.domain = urlparse(base_url).netloc
@@ -66,11 +77,22 @@ class WebsiteCrawler:
         self.crawled_content: Dict[str, Dict] = {}
         self.url_mapping: Dict[str, str] = {}  # URL到文件路径的映射
         
+        # 初始化内容过滤器
+        self.content_filter = None
+        if CONTENT_FILTER_AVAILABLE and content_filter_config:
+            self.content_filter = ContentFilter.create_from_config(content_filter_config)
+            logger.info("✅ 内容过滤器已启用")
+        elif CONTENT_FILTER_AVAILABLE:
+            # 使用默认过滤器
+            self.content_filter = create_default_filter()
+            logger.info("✅ 使用默认内容过滤器")
+        
         # 统计信息
         self.stats = {
             'total_discovered': 0,
             'total_crawled': 0,
             'failed_crawls': 0,
+            'filtered_elements': 0,
             'start_time': None,
             'end_time': None
         }
@@ -276,6 +298,23 @@ class WebsiteCrawler:
         # 生成安全的文件名
         safe_filename = self._url_to_filename(url)
         
+        # 应用内容过滤
+        cleaned_html = result.cleaned_html
+        markdown_content = result.markdown.raw_markdown if hasattr(result.markdown, 'raw_markdown') else str(result.markdown)
+        
+        if self.content_filter:
+            # 过滤HTML内容
+            filtered_html = self.content_filter.filter_html(cleaned_html)
+            if filtered_html != cleaned_html:
+                self.stats['filtered_elements'] += 1
+                logger.info(f"已对页面 {url} 应用内容过滤")
+                cleaned_html = filtered_html
+            
+            # 过滤Markdown内容
+            filtered_markdown = self.content_filter.filter_text(markdown_content)
+            if filtered_markdown != markdown_content:
+                markdown_content = filtered_markdown
+        
         # 提取内容
         content_data = {
             'url': url,
@@ -283,11 +322,12 @@ class WebsiteCrawler:
             'description': '',
             'timestamp': datetime.now().isoformat(),
             'status_code': result.status_code,
-            'markdown': result.markdown.raw_markdown if hasattr(result.markdown, 'raw_markdown') else str(result.markdown),
-            'cleaned_html': result.cleaned_html,
+            'markdown': markdown_content,
+            'cleaned_html': cleaned_html,
             'extracted_content': {},
             'links': result.links,
-            'media': result.media
+            'media': result.media,
+            'content_filtered': bool(self.content_filter)
         }
         
         # 处理提取的结构化内容
